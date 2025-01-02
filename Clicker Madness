@@ -1,90 +1,153 @@
--- // Library
+-- First add the entire PlatoBoost library code here from the previous document
+local service = 829  -- Replace with your service ID
+local secret = "022a2c62-bbaf-44bf-bf4a-33d712f830e7"  -- Replace with your secret
+local useNonce = true
+
+-- Set up the message callback for notifications
+local onMessage = function(message)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Key System",
+        Text = message,
+        Duration = 5
+    })
+end
+
+-- Create key system UI using Orion
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Chaosscripter/Riotscripter/refs/heads/main/Orion%20Library%202')))()
-local Window = OrionLib:MakeWindow({ Name = "Midnight Hub Clicker Madness", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub" })
+local KeyWindow = OrionLib:MakeWindow({Name = "Midnight Hub Key System", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub Keys"})
 
--- // Services -- Defining Services, Variables, and Functions all in one place above the rest of the scripts makes life easy
-local players = game:GetService("Players")
-local replicatedstorage = game:GetService("ReplicatedStorage")
-local runservice = game:GetService("RunService")
+-- Key System Tab
+local keyTab = KeyWindow:MakeTab({Name = "Key System", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+local keyBox
 
--- // Variables
-local player = players.LocalPlayer
-getgenv().Settings = { -- Storing settings in a table is not required but can keep things easier to find and work with. With Orion you can save time by using Flags instead of a table, but i prefer tables.
-    beastMode = false, -- Make sure you set everything to a good default so it doesnt make shit go brr without the user turning it on
-    autoClicker = { -- Nesting tables is good for keeping one feature with extra options neat and integrated with the settings
-        enabled = false,
-        multi = 1
-    },
-    bossFarm = false,
-    pickupFarm = false
-}
-
--- // Functions
-local function sendClick(multi)
-    replicatedstorage.Aero.AeroRemoteServices.ClickService.Click:FireServer(multi)
-end
-
-local function getPasses(toggle) -- These are not consistent nor efficient ways to make the functions bc i couldnt decide if i wanted to use the table above then decided a grand 'kinda' so i can still show the settings table
-    for _,v in pairs(player.Gamepasses:GetChildren()) do
-        v.Value = toggle
+keyTab:AddTextbox({
+    Name = "Enter Key",
+    Default = "",
+    TextDisappear = false,
+    Callback = function(Value)
+        keyBox = Value
     end
-end
+})
 
-local function getFlags()
-    local startPos = player.Character.HumanoidRootPart.CFrame
-    for _,v in pairs(workspace.Flags:GetChildren()) do
-        if v then
-            player.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame + Vector3.new(0, 5, 0)
-            task.wait(7)
-            player.Character.HumanoidRootPart.CFrame = startPos
+keyTab:AddButton({
+    Name = "Get Key",
+    Callback = function()
+        copyLink()
+        onMessage("Key link copied to clipboard!")
+    end
+})
+
+keyTab:AddButton({
+    Name = "Verify Key",
+    Callback = function()
+        if keyBox and keyBox ~= "" then
+            local success = verifyKey(keyBox)
+            if success then
+                onMessage("Key verified successfully! Loading script...")
+                KeyWindow:Destroy()
+                loadScript()
+            end
+        else
+            onMessage("Please enter a key!")
         end
-        
     end
-end
+})
 
+-- Main script function that only runs after key verification
+function loadScript()
+    local Window = OrionLib:MakeWindow({ Name = "Midnight Hub Clicker Madness", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub" })
 
+    -- // Services
+    local players = game:GetService("Players")
+    local replicatedstorage = game:GetService("ReplicatedStorage")
+    local runservice = game:GetService("RunService")
 
+    -- // Variables
+    local player = players.LocalPlayer
+    getgenv().Settings = {
+        beastMode = false,
+        autoClicker = {
+            enabled = false,
+            multi = 1
+        },
+        bossFarm = false,
+        pickupFarm = false
+    }
 
--- // Main Tab -- Always sort your tabs so you dont get lost in the sauce. Making everything one line makes it easier to read the info you might need and find something faster
-local mainTab = Window:MakeTab({ Name = "Main", Icon = "rbxassetid://4483345998", PremiumOnly = false })
-mainTab:AddLabel("Autofarm")
-mainTab:AddToggle({ Name = "Autoclicker", Default = false, Callback = function(t) Settings.autoClicker.enabled = t end })
-mainTab:AddSlider({ Name = "Autoclicker Multiplier", Min = 1, Max = 10, Default = 1, Increment = 1, ValueName = "x", Callback = function(t) Settings.autoClicker.multi = t end })
-mainTab:AddToggle({ Name = "Boss Farm", Default = false, Callback = function(t) Settings.bossFarm = t end })
-mainTab:AddToggle({ Name = "Pickup Farm", Default = false, Callback = function(t) Settings.pickupFarm = t end })
-mainTab:AddButton({ Name = "Capture All Flags", Callback = function() getFlags() end })
-
-mainTab:AddLabel("Misc")
-mainTab:AddToggle({ Name = "All Gamepasses", Default = false, Callback = function(t) getPasses(t) end })
-mainTab:AddToggle({ Name = "Hide Popup Effects", Default = false, Callback = function(t) player.PlayerGui.PopupEffects.Enabled = not t end })
-
-
--- // Loops -- I put these at the end bc everything is defined above and it wont error ok yes
-
-
-runservice.RenderStepped:Connect(function() -- Renderstepped runs every frame, use `while task.wait() do` instead if you don't want it bound to your fps depending on what you're doing.
-
-    if Settings.autoClicker.enabled then -- No need to use getgenv() to call the value. Also no need to use == true for a bool
-        sendClick(Settings.autoClicker.multi)
+    -- // Functions
+    local function sendClick(multi)
+        replicatedstorage.Aero.AeroRemoteServices.ClickService.Click:FireServer(multi)
     end
 
-    if Settings.bossFarm then
-        local remote = replicatedstorage.Aero.AeroRemoteServices.CursorCannonService.FireBoss
-        for _,v in pairs(replicatedstorage.BossObjects:GetChildren()) do
-            remote:FireServer(v.Name)
+    local function getPasses(toggle)
+        for _,v in pairs(player.Gamepasses:GetChildren()) do
+            v.Value = toggle
         end
     end
 
-    if Settings.pickupFarm then
-        for _,v in pairs(workspace.ScriptObjects:GetChildren()) do
-            if v and v.Name == "BasePickup" and v:FindFirstChild("HumanoidRootPart") then
-                firetouchinterest(player.Character.Head, v.HumanoidRootPart, 0)
+    local function getFlags()
+        local startPos = player.Character.HumanoidRootPart.CFrame
+        for _,v in pairs(workspace.Flags:GetChildren()) do
+            if v then
+                player.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame + Vector3.new(0, 5, 0)
+                task.wait(7)
+                player.Character.HumanoidRootPart.CFrame = startPos
             end
         end
     end
 
-end)
+    -- // Main Tab
+    local mainTab = Window:MakeTab({ Name = "Main", Icon = "rbxassetid://4483345998", PremiumOnly = false })
+    mainTab:AddLabel("Autofarm")
+    mainTab:AddToggle({ Name = "Autoclicker", Default = false, Callback = function(t) Settings.autoClicker.enabled = t end })
+    mainTab:AddSlider({ Name = "Autoclicker Multiplier", Min = 1, Max = 10, Default = 1, Increment = 1, ValueName = "x", Callback = function(t) Settings.autoClicker.multi = t end })
+    mainTab:AddToggle({ Name = "Boss Farm", Default = false, Callback = function(t) Settings.bossFarm = t end })
+    mainTab:AddToggle({ Name = "Pickup Farm", Default = false, Callback = function(t) Settings.pickupFarm = t end })
+    mainTab:AddButton({ Name = "Capture All Flags", Callback = function() getFlags() end })
 
+    mainTab:AddLabel("Misc")
+    mainTab:AddToggle({ Name = "All Gamepasses", Default = false, Callback = function(t) getPasses(t) end })
+    mainTab:AddToggle({ Name = "Hide Popup Effects", Default = false, Callback = function(t) player.PlayerGui.PopupEffects.Enabled = not t end })
 
+    -- Anti-tamper protection
+    local keyChecked = true
+    task.spawn(function()
+        while true do
+            task.wait(1)
+            if not keyChecked then
+                Window:Destroy()
+                OrionLib:Destroy()
+                break
+            end
+        end
+    end)
 
+    -- // Main loops
+    runservice.RenderStepped:Connect(function()
+        if not keyChecked then return end
+
+        if Settings.autoClicker.enabled then
+            sendClick(Settings.autoClicker.multi)
+        end
+
+        if Settings.bossFarm then
+            local remote = replicatedstorage.Aero.AeroRemoteServices.CursorCannonService.FireBoss
+            for _,v in pairs(replicatedstorage.BossObjects:GetChildren()) do
+                remote:FireServer(v.Name)
+            end
+        end
+
+        if Settings.pickupFarm then
+            for _,v in pairs(workspace.ScriptObjects:GetChildren()) do
+                if v and v.Name == "BasePickup" and v:FindFirstChild("HumanoidRootPart") then
+                    firetouchinterest(player.Character.Head, v.HumanoidRootPart, 0)
+                end
+            end
+        end
+    end)
+
+    OrionLib:Init()
+end
+
+-- Initialize key system
 OrionLib:Init()
