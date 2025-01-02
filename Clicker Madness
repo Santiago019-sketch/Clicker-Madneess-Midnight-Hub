@@ -1,5 +1,5 @@
 -- // Library
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Chaosscripter/Riotscripter/refs/heads/main/Orion%20Library%202')))()
 local Window = OrionLib:MakeWindow({ Name = "Midnight Hub Clicker Madness", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub" })
 
 -- // Services -- Defining Services, Variables, and Functions all in one place above the rest of the scripts makes life easy
