@@ -1,24 +1,44 @@
--- First add the entire PlatoBoost library code here from the previous document
-local service = 829  -- Replace with your service ID
-local secret = "022a2c62-bbaf-44bf-bf4a-33d712f830e7"  -- Replace with your secret
-local useNonce = true
-
--- Set up the message callback for notifications
-local onMessage = function(message)
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "Key System",
-        Text = message,
-        Duration = 5
-    })
-end
-
--- Create key system UI using Orion
+-- Create Orion UI
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Chaosscripter/Riotscripter/refs/heads/main/Orion%20Library%202')))()
 local KeyWindow = OrionLib:MakeWindow({Name = "Midnight Hub Key System", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub Keys"})
 
+-- Variables for key system
+local linkCode = "Liqq5Gjs"  -- Your LootLabs link code
+local linkvertiseLink = "https://lootdest.org/s?" .. linkCode
+local keyBox = ""
+
+-- Function to copy link
+local function copyGetKeyLink()
+    if setclipboard then
+        setclipboard(linkvertiseLink)
+        return true
+    elseif toclipboard then
+        toclipboard(linkvertiseLink)
+        return true
+    end
+    return false
+end
+
+-- Notification function
+local function notify(title, message, duration)
+    OrionLib:MakeNotification({
+        Name = title,
+        Content = message,
+        Image = "rbxassetid://4483345998",
+        Time = duration or 5
+    })
+end
+
 -- Key System Tab
 local keyTab = KeyWindow:MakeTab({Name = "Key System", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-local keyBox
+
+keyTab:AddParagraph("How to get key:", 
+[[1. Click 'Get Key' button below
+2. The key link will be copied to your clipboard
+3. Paste the link in your browser
+4. Complete the linkvertise steps
+5. Copy the key and paste it above
+6. Click 'Verify Key']])
 
 keyTab:AddTextbox({
     Name = "Enter Key",
@@ -32,23 +52,35 @@ keyTab:AddTextbox({
 keyTab:AddButton({
     Name = "Get Key",
     Callback = function()
-        copyLink()
-        onMessage("Key link copied to clipboard!")
+        if copyGetKeyLink() then
+            notify("Key System", "Link copied to clipboard! Complete linkvertise to get your key.", 10)
+        else
+            notify("Error", "Failed to copy link. Link: " .. linkvertiseLink, 10)
+        end
     end
 })
+
+-- Function to check key (modify this based on your key generation method)
+local function checkKey(key)
+    -- Add your key verification logic here
+    -- For example, you could check against a list of valid keys or use a specific format
+    return key == "YOUR_VALID_KEY_HERE"  -- Replace with your actual key checking logic
+end
 
 keyTab:AddButton({
     Name = "Verify Key",
     Callback = function()
-        if keyBox and keyBox ~= "" then
-            local success = verifyKey(keyBox)
-            if success then
-                onMessage("Key verified successfully! Loading script...")
-                KeyWindow:Destroy()
-                loadScript()
-            end
+        if keyBox == "" then
+            notify("Error", "Please enter a key!")
+            return
+        end
+
+        if checkKey(keyBox) then
+            notify("Success", "Key verified! Loading script...")
+            KeyWindow:Destroy()
+            loadScript()
         else
-            onMessage("Please enter a key!")
+            notify("Error", "Invalid key! Please try again.", 5)
         end
     end
 })
@@ -109,23 +141,8 @@ function loadScript()
     mainTab:AddToggle({ Name = "All Gamepasses", Default = false, Callback = function(t) getPasses(t) end })
     mainTab:AddToggle({ Name = "Hide Popup Effects", Default = false, Callback = function(t) player.PlayerGui.PopupEffects.Enabled = not t end })
 
-    -- Anti-tamper protection
-    local keyChecked = true
-    task.spawn(function()
-        while true do
-            task.wait(1)
-            if not keyChecked then
-                Window:Destroy()
-                OrionLib:Destroy()
-                break
-            end
-        end
-    end)
-
     -- // Main loops
     runservice.RenderStepped:Connect(function()
-        if not keyChecked then return end
-
         if Settings.autoClicker.enabled then
             sendClick(Settings.autoClicker.multi)
         end
@@ -145,8 +162,6 @@ function loadScript()
             end
         end
     end)
-
-    OrionLib:Init()
 end
 
 -- Initialize key system
