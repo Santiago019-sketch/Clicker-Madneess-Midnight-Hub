@@ -1,46 +1,36 @@
+-- PlatoBoost Configuration
+local service = 829  -- Replace with your actual service ID
+local secret = "022a2c62-bbaf-44bf-bf4a-33d712f830e7"  -- Replace with your actual secret
+local useNonce = true
+
+-- Notification handler for PlatoBoost
+local function onMessage(message)
+    OrionLib:MakeNotification({
+        Name = "Key System",
+        Content = message,
+        Image = "rbxassetid://4483345998",
+        Time = 5
+    })
+end
+
 -- Create Orion UI
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Chaosscripter/Riotscripter/refs/heads/main/Orion%20Library%202')))()
 local KeyWindow = OrionLib:MakeWindow({Name = "Midnight Hub Key System", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub Keys"})
 
--- Variables for key system
-local VALID_KEY = "KEY_46765676546875467865"  -- Your specified key
-local linkCode = "Liqq5Gjs"
-local linkvertiseLink = "https://lootdest.org/s?" .. linkCode
-local keyBox = ""
-
--- Function to copy link
-local function copyGetKeyLink()
-    if setclipboard then
-        setclipboard(linkvertiseLink)
-        return true
-    elseif toclipboard then
-        toclipboard(linkvertiseLink)
-        return true
-    end
-    return false
-end
-
--- Notification function
-local function notify(title, message, duration)
-    OrionLib:MakeNotification({
-        Name = title,
-        Content = message,
-        Image = "rbxassetid://4483345998",
-        Time = duration or 5
-    })
-end
+-- Load PlatoBoost Library
+local PlatoBoost = loadstring(game:HttpGet("https://raw.githubusercontent.com/Chaosscripter/Riotscripter/refs/heads/main/Boost.lua"))()
 
 -- Key System Tab
 local keyTab = KeyWindow:MakeTab({Name = "Key System", Icon = "rbxassetid://4483345998", PremiumOnly = false})
 
-keyTab:AddParagraph("How to get key:", 
-[[1. Click 'Get Key' button below
+keyTab:AddParagraph("How to get key:", [[
+1. Click 'Get Key' button below
 2. The key link will be copied to your clipboard
-3. Paste the link in your browser
-4. Complete the linkvertise steps
-5. Copy the key and paste it above
-6. Click 'Verify Key']])
+3. Complete the steps on the website
+4. Copy your key and paste it below
+5. Click 'Check Key']])
 
+local keyBox = ""
 keyTab:AddTextbox({
     Name = "Enter Key",
     Default = "",
@@ -53,40 +43,46 @@ keyTab:AddTextbox({
 keyTab:AddButton({
     Name = "Get Key",
     Callback = function()
-        if copyGetKeyLink() then
-            notify("Key System", "Link copied to clipboard! Complete linkvertise to get your key.", 10)
-        else
-            notify("Error", "Failed to copy link. Link: " .. linkvertiseLink, 10)
-        end
+        PlatoBoost.copyLink()
+        OrionLib:MakeNotification({
+            Name = "Key System",
+            Content = "Link copied to clipboard!",
+            Image = "rbxassetid://4483345998",
+            Time = 5
+        })
     end
 })
 
--- Function to check key
-local function checkKey(key)
-    return key == VALID_KEY
-end
-
 keyTab:AddButton({
-    Name = "Verify Key",
+    Name = "Check Key",
     Callback = function()
         if keyBox == "" then
-            notify("Error", "Please enter a key!")
+            OrionLib:MakeNotification({
+                Name = "Error",
+                Content = "Please enter a key!",
+                Image = "rbxassetid://4483345998",
+                Time = 5
+            })
             return
         end
 
-        if checkKey(keyBox) then
-            notify("Success", "Key verified! Loading script...")
+        local success = PlatoBoost.verifyKey(keyBox)
+        if success then
+            OrionLib:MakeNotification({
+                Name = "Success",
+                Content = "Key verified! Loading script...",
+                Image = "rbxassetid://4483345998",
+                Time = 5
+            })
             KeyWindow:Destroy()
-            loadScript()
-        else
-            notify("Error", "Invalid key! Please try again.", 5)
+            loadScript()  -- Load main script after key verification
         end
     end
 })
 
 -- Main script function that runs after key verification
 function loadScript()
-    local Window = OrionLib:MakeWindow({Name = "Midnight Hub Clicker Madness", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub"})
+    local Window = OrionLib:MakeWindow({Name = "Midnight Hub", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub"})
 
     -- Services
     local players = game:GetService("Players")
