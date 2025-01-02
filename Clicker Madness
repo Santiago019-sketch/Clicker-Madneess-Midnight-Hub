@@ -3,7 +3,8 @@ local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Cha
 local KeyWindow = OrionLib:MakeWindow({Name = "Midnight Hub Key System", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub Keys"})
 
 -- Variables for key system
-local linkCode = "Liqq5Gjs"  -- Your LootLabs link code
+local VALID_KEY = "KEY_46765676546875467865"  -- Your specified key
+local linkCode = "Liqq5Gjs"
 local linkvertiseLink = "https://lootdest.org/s?" .. linkCode
 local keyBox = ""
 
@@ -60,11 +61,9 @@ keyTab:AddButton({
     end
 })
 
--- Function to check key (modify this based on your key generation method)
+-- Function to check key
 local function checkKey(key)
-    -- Add your key verification logic here
-    -- For example, you could check against a list of valid keys or use a specific format
-    return key == "YOUR_VALID_KEY_HERE"  -- Replace with your actual key checking logic
+    return key == VALID_KEY
 end
 
 keyTab:AddButton({
@@ -85,16 +84,16 @@ keyTab:AddButton({
     end
 })
 
--- Main script function that only runs after key verification
+-- Main script function that runs after key verification
 function loadScript()
-    local Window = OrionLib:MakeWindow({ Name = "Midnight Hub Clicker Madness", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub" })
+    local Window = OrionLib:MakeWindow({Name = "Midnight Hub Clicker Madness", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub"})
 
-    -- // Services
+    -- Services
     local players = game:GetService("Players")
     local replicatedstorage = game:GetService("ReplicatedStorage")
     local runservice = game:GetService("RunService")
 
-    -- // Variables
+    -- Variables
     local player = players.LocalPlayer
     getgenv().Settings = {
         beastMode = false,
@@ -106,20 +105,20 @@ function loadScript()
         pickupFarm = false
     }
 
-    -- // Functions
+    -- Functions
     local function sendClick(multi)
         replicatedstorage.Aero.AeroRemoteServices.ClickService.Click:FireServer(multi)
     end
 
     local function getPasses(toggle)
-        for _,v in pairs(player.Gamepasses:GetChildren()) do
+        for _, v in pairs(player.Gamepasses:GetChildren()) do
             v.Value = toggle
         end
     end
 
     local function getFlags()
         local startPos = player.Character.HumanoidRootPart.CFrame
-        for _,v in pairs(workspace.Flags:GetChildren()) do
+        for _, v in pairs(workspace.Flags:GetChildren()) do
             if v then
                 player.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame + Vector3.new(0, 5, 0)
                 task.wait(7)
@@ -128,20 +127,28 @@ function loadScript()
         end
     end
 
-    -- // Main Tab
-    local mainTab = Window:MakeTab({ Name = "Main", Icon = "rbxassetid://4483345998", PremiumOnly = false })
+    -- Main Tab
+    local mainTab = Window:MakeTab({Name = "Main", Icon = "rbxassetid://4483345998", PremiumOnly = false})
     mainTab:AddLabel("Autofarm")
-    mainTab:AddToggle({ Name = "Autoclicker", Default = false, Callback = function(t) Settings.autoClicker.enabled = t end })
-    mainTab:AddSlider({ Name = "Autoclicker Multiplier", Min = 1, Max = 10, Default = 1, Increment = 1, ValueName = "x", Callback = function(t) Settings.autoClicker.multi = t end })
-    mainTab:AddToggle({ Name = "Boss Farm", Default = false, Callback = function(t) Settings.bossFarm = t end })
-    mainTab:AddToggle({ Name = "Pickup Farm", Default = false, Callback = function(t) Settings.pickupFarm = t end })
-    mainTab:AddButton({ Name = "Capture All Flags", Callback = function() getFlags() end })
+    mainTab:AddToggle({Name = "Autoclicker", Default = false, Callback = function(t) Settings.autoClicker.enabled = t end})
+    mainTab:AddSlider({
+        Name = "Autoclicker Multiplier",
+        Min = 1,
+        Max = 10,
+        Default = 1,
+        Increment = 1,
+        ValueName = "x",
+        Callback = function(t) Settings.autoClicker.multi = t end
+    })
+    mainTab:AddToggle({Name = "Boss Farm", Default = false, Callback = function(t) Settings.bossFarm = t end})
+    mainTab:AddToggle({Name = "Pickup Farm", Default = false, Callback = function(t) Settings.pickupFarm = t end})
+    mainTab:AddButton({Name = "Capture All Flags", Callback = function() getFlags() end})
 
     mainTab:AddLabel("Misc")
-    mainTab:AddToggle({ Name = "All Gamepasses", Default = false, Callback = function(t) getPasses(t) end })
-    mainTab:AddToggle({ Name = "Hide Popup Effects", Default = false, Callback = function(t) player.PlayerGui.PopupEffects.Enabled = not t end })
+    mainTab:AddToggle({Name = "All Gamepasses", Default = false, Callback = function(t) getPasses(t) end})
+    mainTab:AddToggle({Name = "Hide Popup Effects", Default = false, Callback = function(t) player.PlayerGui.PopupEffects.Enabled = not t end})
 
-    -- // Main loops
+    -- Main loops
     runservice.RenderStepped:Connect(function()
         if Settings.autoClicker.enabled then
             sendClick(Settings.autoClicker.multi)
@@ -149,13 +156,13 @@ function loadScript()
 
         if Settings.bossFarm then
             local remote = replicatedstorage.Aero.AeroRemoteServices.CursorCannonService.FireBoss
-            for _,v in pairs(replicatedstorage.BossObjects:GetChildren()) do
+            for _, v in pairs(replicatedstorage.BossObjects:GetChildren()) do
                 remote:FireServer(v.Name)
             end
         end
 
         if Settings.pickupFarm then
-            for _,v in pairs(workspace.ScriptObjects:GetChildren()) do
+            for _, v in pairs(workspace.ScriptObjects:GetChildren()) do
                 if v and v.Name == "BasePickup" and v:FindFirstChild("HumanoidRootPart") then
                     firetouchinterest(player.Character.Head, v.HumanoidRootPart, 0)
                 end
@@ -164,5 +171,5 @@ function loadScript()
     end)
 end
 
--- Initialize key system
+-- Initialize Orion Library
 OrionLib:Init()
