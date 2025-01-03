@@ -1,171 +1,101 @@
--- PlatoBoost Configuration
-local service = 829  -- Replace with your actual service ID
-local secret = "022a2c62-bbaf-44bf-bf4a-33d712f830e7"  -- Replace with your actual secret
-local useNonce = true
+--// Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
--- Notification handler for PlatoBoost
-local function onMessage(message)
-    OrionLib:MakeNotification({
-        Name = "Key System",
-        Content = message,
-        Image = "rbxassetid://4483345998",
-        Time = 5
-    })
-end
+--// Orion Library
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({Name = "Madness Clicker GUI", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionConfigs"})
 
--- Create Orion UI
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Chaosscripter/Riotscripter/refs/heads/main/Orion%20Library%202')))()
-local KeyWindow = OrionLib:MakeWindow({Name = "Midnight Hub Key System", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub Keys"})
+--// Variables
+_G.Autoclicker = false
+_G.GroupChest = false
+_G.DailyChest = false
+_G.ClickMultiplier = false
+_G.CursorDamage = false
+_G.Health = false
+_G.JumpUpgrade = false
+_G.SpeedUpgrade = false
+_G.PetStorage = false
+_G.BossHit = false
+_G.TwoxDamage = false
+_G.XtwoHealth = false
+_G.PetSlots = false
+_G.SuperPetStorage = false
 
--- Load PlatoBoost Library
-local PlatoBoost = loadstring(game:HttpGet("https://raw.githubusercontent.com/Chaosscripter/Riotscripter/refs/heads/main/Boost.lua"))()
+--// Main Tab
+local Tab = Window:MakeTab({
+	Name = "Automations",
+	Icon = "rbxassetid://122341342375300",
+	PremiumOnly = false
+})
 
--- Key System Tab
-local keyTab = KeyWindow:MakeTab({Name = "Key System", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+local Section = Tab:AddSection({
+	Name = "Autofarm"
+})
 
-keyTab:AddParagraph("How to get key:", [[
-1. Click 'Get Key' button below
-2. The key link will be copied to your clipboard
-3. Complete the steps on the website
-4. Copy your key and paste it below
-5. Click 'Check Key']])
+Tab:AddToggle({
+    Name = "Autoclicker",
+	Default = false,
+    Callback = function(state)
+        _G.Autoclicker = state
 
-local keyBox = ""
-keyTab:AddTextbox({
-    Name = "Enter Key",
-    Default = "",
-    TextDisappear = false,
-    Callback = function(Value)
-        keyBox = Value
+        while _G.Autoclicker do
+            local args = {[1] = 1}
+            ReplicatedStorage.Aero.AeroRemoteServices.ClickService.Click:FireServer(unpack(args))
+            task.wait()
+        end
     end
 })
 
-keyTab:AddButton({
-    Name = "Get Key",
+local Section = Tab:AddSection({
+	Name = "Chests"
+})
+
+Tab:AddButton({
+    Name = "Claim Group Chest (Join group first)",
     Callback = function()
-        PlatoBoost.copyLink()
-        OrionLib:MakeNotification({
-            Name = "Key System",
-            Content = "Link copied to clipboard!",
-            Image = "rbxassetid://4483345998",
-            Time = 5
-        })
+        local args = {[1] = "group1"}
+        ReplicatedStorage.Aero.AeroRemoteServices.ChestService.OpenChest:FireServer(unpack(args))
     end
 })
 
-keyTab:AddButton({
-    Name = "Check Key",
+Tab:AddButton({
+    Name = "Claim Daily Chest",
     Callback = function()
-        if keyBox == "" then
-            OrionLib:MakeNotification({
-                Name = "Error",
-                Content = "Please enter a key!",
-                Image = "rbxassetid://4483345998",
-                Time = 5
-            })
-            return
-        end
+        local args = {[1] = "ChestOpens"}
+        ReplicatedStorage.Aero.AeroRemoteServices.DataService.Get:InvokeServer(unpack(args))
+    end
+})
 
-        local success = PlatoBoost.verifyKey(keyBox)
-        if success then
-            OrionLib:MakeNotification({
-                Name = "Success",
-                Content = "Key verified! Loading script...",
-                Image = "rbxassetid://4483345998",
-                Time = 5
-            })
-            KeyWindow:Destroy()
-            loadScript()  -- Load main script after key verification
+Tab:AddToggle({
+    Name = "Auto Claim Group Chest",
+    Default = false,
+    Callback = function(state)
+        _G.GroupChest = state
+
+        while _G.GroupChest do
+            local args = {[1] = "group1"}
+            ReplicatedStorage.Aero.AeroRemoteServices.ChestService.OpenChest:FireServer(unpack(args))
+            task.wait(5)
         end
     end
 })
 
--- Main script function that runs after key verification
-function loadScript()
-    local Window = OrionLib:MakeWindow({Name = "Midnight Hub", HidePremium = true, SaveConfig = true, ConfigFolder = "Midnight Hub"})
+Tab:AddToggle({
+    Name = "Auto Claim Daily Chest",
+    Default = false,
+    Callback = function(state)
+        _G.DailyChest = state
 
-    -- Services
-    local players = game:GetService("Players")
-    local replicatedstorage = game:GetService("ReplicatedStorage")
-    local runservice = game:GetService("RunService")
-
-    -- Variables
-    local player = players.LocalPlayer
-    getgenv().Settings = {
-        beastMode = false,
-        autoClicker = {
-            enabled = false,
-            multi = 1
-        },
-        bossFarm = false,
-        pickupFarm = false
-    }
-
-    -- Functions
-    local function sendClick(multi)
-        replicatedstorage.Aero.AeroRemoteServices.ClickService.Click:FireServer(multi)
-    end
-
-    local function getPasses(toggle)
-        for _, v in pairs(player.Gamepasses:GetChildren()) do
-            v.Value = toggle
+        while _G.DailyChest do
+            local args = {[1] = "ChestOpens"}
+            ReplicatedStorage.Aero.AeroRemoteServices.DataService.Get:InvokeServer(unpack(args))
+            task.wait(5)
         end
     end
+})
 
-    local function getFlags()
-        local startPos = player.Character.HumanoidRootPart.CFrame
-        for _, v in pairs(workspace.Flags:GetChildren()) do
-            if v then
-                player.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame + Vector3.new(0, 5, 0)
-                task.wait(7)
-                player.Character.HumanoidRootPart.CFrame = startPos
-            end
-        end
-    end
+-- Add similar sections for Upgrades and Super Upgrades as in the original script.
 
-    -- Main Tab
-    local mainTab = Window:MakeTab({Name = "Main", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-    mainTab:AddLabel("Autofarm")
-    mainTab:AddToggle({Name = "Autoclicker", Default = false, Callback = function(t) Settings.autoClicker.enabled = t end})
-    mainTab:AddSlider({
-        Name = "Autoclicker Multiplier",
-        Min = 1,
-        Max = 10,
-        Default = 1,
-        Increment = 1,
-        ValueName = "x",
-        Callback = function(t) Settings.autoClicker.multi = t end
-    })
-    mainTab:AddToggle({Name = "Boss Farm", Default = false, Callback = function(t) Settings.bossFarm = t end})
-    mainTab:AddToggle({Name = "Pickup Farm", Default = false, Callback = function(t) Settings.pickupFarm = t end})
-    mainTab:AddButton({Name = "Capture All Flags", Callback = function() getFlags() end})
-
-    mainTab:AddLabel("Misc")
-    mainTab:AddToggle({Name = "All Gamepasses", Default = false, Callback = function(t) getPasses(t) end})
-    mainTab:AddToggle({Name = "Hide Popup Effects", Default = false, Callback = function(t) player.PlayerGui.PopupEffects.Enabled = not t end})
-
-    -- Main loops
-    runservice.RenderStepped:Connect(function()
-        if Settings.autoClicker.enabled then
-            sendClick(Settings.autoClicker.multi)
-        end
-
-        if Settings.bossFarm then
-            local remote = replicatedstorage.Aero.AeroRemoteServices.CursorCannonService.FireBoss
-            for _, v in pairs(replicatedstorage.BossObjects:GetChildren()) do
-                remote:FireServer(v.Name)
-            end
-        end
-
-        if Settings.pickupFarm then
-            for _, v in pairs(workspace.ScriptObjects:GetChildren()) do
-                if v and v.Name == "BasePickup" and v:FindFirstChild("HumanoidRootPart") then
-                    firetouchinterest(player.Character.Head, v.HumanoidRootPart, 0)
-                end
-            end
-        end
-    end)
-end
-
--- Initialize Orion Library
 OrionLib:Init()
