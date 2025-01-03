@@ -54,6 +54,22 @@ function autorebirth(rebirthamount)
     end)
 end
 
+-- Auto Gamepasses (fixing issue)
+function buyGamePass(passName)
+    local gamePasses = {
+        ["Double Jump"] = 123456789, -- example, replace with actual pass IDs
+        ["Auto Clicker"] = 987654321, -- example, replace with actual pass IDs
+        -- Add more game pass IDs as necessary
+    }
+
+    local passId = gamePasses[passName]
+    if passId then
+        game:GetService("ReplicatedStorage").Aero.AeroRemoteServices.GamePassService.BuyPass:FireServer(passId)
+    else
+        print("Invalid pass name.")
+    end
+end
+
 -- Auto Clicker Toggle
 Tab:AddToggle({
     Name = "Autoclicker",
@@ -190,6 +206,19 @@ Tab:AddToggle({
         _G.Autorebirth = state
         if _G.Autorebirth then
             autorebirth(_G.RebirthAmount)
+        end
+    end
+})
+
+-- Auto Gamepass Toggle
+Tab:AddToggle({
+    Name = "Auto Buy Gamepasses",
+    Default = true,  -- Set to false if you don't want auto gamepasses
+    Callback = function(state)
+        if state then
+            -- Add game passes to automatically buy here:
+            buyGamePass("Double Jump")  -- Example pass
+            buyGamePass("Auto Clicker")  -- Example pass
         end
     end
 })
